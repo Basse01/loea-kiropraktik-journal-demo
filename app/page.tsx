@@ -1,45 +1,103 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 
 export default function Home() {
   const [isRecording, setIsRecording] = useState(false);
   const [transcription, setTranscription] = useState("");
+  const [interimText, setInterimText] = useState("");
   const [formattedJournal, setFormattedJournal] = useState("");
-  const [isTranscribing, setIsTranscribing] = useState(false);
   const [isFormatting, setIsFormatting] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [error, setError] = useState("");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
+  const wsRef = useRef<WebSocket | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const finalTranscriptRef = useRef("");
+  const recordingStartRef = useRef<number>(0);
 
   const startRecording = async () => {
     try {
       setError("");
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
-      mediaRecorder.ondataavailable = (event) => { if (event.data.size > 0) chunksRef.current.push(event.data); };
-      mediaRecorder.onstop = () => { const blob = new Blob(chunksRef.current, { type: "audio/webm" }); stream.getTracks().forEach((track) => track.stop()); transcribeAudio(blob); };
-      mediaRecorder.start();
-      setIsRecording(true);
-    } catch (err) { setError("Kunde inte starta inspelning. Kontrollera mikrofonbehörighet."); }
+      setTranscription("");
+      setInterimText("");
+      finalTranscriptRef.current = "";
+
+      const tokenRes = await fetch("/api/deepgram-token");
+      const tokenData = await tokenRes.json();
+      if (!tokenRes.ok) throw new Error(tokenData.error || "Kunde inte hämta token");
+
+      const ws = new WebSocket(
+        `wss://api.eu.deepgram.com/v1/listen?language=sv&model=nova-2&interim_results=true&endpointing=300&mip_opt_out=true`,
+        ["token", tokenData.token]
+      );
+      wsRef.current = ws;
+
+      ws.onopen = async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = stream;
+        const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
+        mediaRecorderRef.current = mediaRecorder;
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
+            ws.send(event.data);
+          }
+        };
+
+        mediaRecorder.start(250);
+        recordingStartRef.current = Date.now();
+        setIsRecording(true);
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const transcript = data.channel?.alternatives?.[0]?.transcript;
+        if (!transcript) return;
+
+        if (data.is_final) {
+          finalTranscriptRef.current += (finalTranscriptRef.current ? " " : "") + transcript;
+          setTranscription(finalTranscriptRef.current);
+          setInterimText("");
+        } else {
+          setInterimText(transcript);
+        }
+      };
+
+      ws.onerror = () => setError("WebSocket-anslutning till Deepgram misslyckades");
+      ws.onclose = () => setInterimText("");
+
+    } catch (err: any) { setError(err.message || "Kunde inte starta inspelning. Kontrollera mikrofonbehörighet."); }
   };
 
-  const stopRecording = () => { if (mediaRecorderRef.current && isRecording) { mediaRecorderRef.current.stop(); setIsRecording(false); } };
+  const stopRecording = useCallback(() => {
+    const audioSeconds = recordingStartRef.current
+      ? Math.round((Date.now() - recordingStartRef.current) / 1000)
+      : 0;
 
-  const transcribeAudio = async (blob: Blob) => {
-    setIsTranscribing(true); setError("");
-    try {
-      const formData = new FormData(); formData.append("audio", blob, "recording.webm");
-      const response = await fetch("/api/transcribe", { method: "POST", body: formData });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Transkribering misslyckades");
-      setTranscription(data.text);
-    } catch (err: any) { setError(err.message || "Ett fel uppstod vid transkribering"); } finally { setIsTranscribing(false); }
-  };
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "CloseStream" }));
+      wsRef.current.close();
+    }
+    setIsRecording(false);
+    setInterimText("");
+
+    if (audioSeconds > 0) {
+      fetch("/api/log-usage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ audioSeconds }),
+      }).catch(() => {});
+    }
+  }, []);
 
   const formatToJournal = async () => {
     if (!transcription) return;
@@ -102,10 +160,10 @@ export default function Home() {
           <section className="bg-white rounded-2xl p-8 mb-8 shadow-sm border border-gray-100">
             <h2 className="text-2xl font-semibold text-[#1a1a1a] mb-6">Transkribering</h2>
             <div className="relative">
-              <textarea readOnly value={transcription} placeholder="Transkriberad text visas här..." className="w-full h-[160px] p-5 bg-[#f8f8f8] border border-gray-200 rounded-xl resize-none text-[#333] text-base placeholder-gray-400 focus:outline-none focus:border-[#2d8c4e] transition-colors" />
-              {isTranscribing && (<div className="absolute inset-0 bg-white/90 flex items-center justify-center rounded-xl"><div className="flex items-center gap-4"><svg className="animate-spin h-6 w-6 text-[#2d8c4e]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg><span className="text-gray-500 text-base font-medium">Transkriberar...</span></div></div>)}
+              <textarea readOnly value={transcription + (interimText ? (transcription ? " " : "") + interimText : "")} placeholder="Transkriberad text visas här i realtid..." className="w-full h-[160px] p-5 bg-[#f8f8f8] border border-gray-200 rounded-xl resize-none text-[#333] text-base placeholder-gray-400 focus:outline-none focus:border-[#2d8c4e] transition-colors" />
+              {isRecording && (<div className="absolute top-3 right-3 flex items-center gap-2"><span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /><span className="text-xs text-red-500 font-medium">LIVE</span></div>)}
             </div>
-            <button onClick={formatToJournal} disabled={!transcription || isTranscribing || isFormatting}
+            <button onClick={formatToJournal} disabled={!transcription || isRecording || isFormatting}
               className="mt-6 w-full py-4 px-8 bg-[#2d8c4e] text-white font-semibold text-base tracking-wide rounded-lg transition-all duration-200 hover:bg-[#246e3e] disabled:opacity-40 disabled:cursor-not-allowed">
               FORMATERA TILL JOURNAL
             </button>
@@ -114,7 +172,7 @@ export default function Home() {
           <section className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
             <h2 className="text-2xl font-semibold text-[#1a1a1a] mb-6">Formaterad Journal</h2>
             <div className="relative">
-              <textarea value={formattedJournal} onChange={(e) => setFormattedJournal(e.target.value)} placeholder="Formaterad journaltext visas här..." className="w-full h-[280px] p-5 bg-[#f8f8f8] border border-gray-200 rounded-xl resize-none text-[#333] text-base placeholder-gray-400 focus:outline-none focus:border-[#2d8c4e] transition-colors" />
+              <textarea value={formattedJournal} onChange={(e) => setFormattedJournal(e.target.value)} placeholder="Formaterad journaltext visas här..." className="w-full h-[420px] p-5 bg-[#f8f8f8] border border-gray-200 rounded-xl resize-none text-[#333] text-base placeholder-gray-400 focus:outline-none focus:border-[#2d8c4e] transition-colors" />
               {isFormatting && (<div className="absolute inset-0 bg-white/90 flex items-center justify-center rounded-xl"><div className="flex items-center gap-4"><svg className="animate-spin h-6 w-6 text-[#2d8c4e]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg><span className="text-gray-500 text-base font-medium">Formaterar...</span></div></div>)}
             </div>
             <div className="mt-6 flex items-center gap-4">
