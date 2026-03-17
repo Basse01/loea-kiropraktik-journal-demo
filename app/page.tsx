@@ -61,8 +61,7 @@ export default function Home() {
       <header className="bg-[#0f1a0f] border-b border-[#00cc44]/15">
         <div className="max-w-[1200px] mx-auto px-6 py-8">
           <div className="text-center">
-            <p className="text-[#00cc44]/50 text-sm tracking-wide uppercase mb-3">Demo för</p>
-            <h1 className="text-3xl font-semibold tracking-wide text-[#00cc44]">LOEA KIROPRAKTIK AB</h1>
+            <h1 className="text-3xl font-semibold tracking-wide text-[#00cc44]">LOEA KIROPRAKTIK</h1>
           </div>
         </div>
       </header>
