@@ -1,20 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { logAzureUsage } from "@/lib/usage";
+
+const AZURE_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT!;
+const AZURE_API_KEY = process.env.AZURE_OPENAI_API_KEY!;
+const AZURE_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT!;
+const AZURE_API_VERSION = "2024-08-01-preview";
 
 export async function POST(request: NextRequest) {
   try {
-    if (!process.env.ANTHROPIC_API_KEY) return NextResponse.json({ error: "ANTHROPIC_API_KEY saknas i .env.local" }, { status: 500 });
-
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const { text } = await request.json();
     if (!text) return NextResponse.json({ error: "Ingen text att formatera" }, { status: 400 });
 
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1024,
-      messages: [{
-        role: "user",
-        content: `Du är en journalformaterare för svensk sjukvård. Din uppgift är att DIREKT formatera anteckningar till journaltext - fråga ALDRIG efter mer information.
+    const url = `${AZURE_ENDPOINT}/openai/deployments/${AZURE_DEPLOYMENT}/chat/completions?api-version=${AZURE_API_VERSION}`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": AZURE_API_KEY,
+      },
+      body: JSON.stringify({
+        messages: [{
+          role: "user",
+          content: `Du är en journalformaterare för svensk sjukvård. Din uppgift är att DIREKT formatera anteckningar till journaltext - fråga ALDRIG efter mer information.
 
 VIKTIGT:
 - Formatera ALLTID texten direkt med den information som finns
@@ -41,10 +49,23 @@ RÅD & UPPFÖLJNING:
 
 Anteckningar att formatera:
 ${text}`,
-      }],
+        }],
+        max_tokens: 1024,
+      }),
     });
 
-    const formattedText = message.content[0].type === "text" ? message.content[0].text : "";
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`${response.status} ${err}`);
+    }
+
+    const data = await response.json();
+    const formattedText = data.choices[0].message.content;
+
+    const inputTokens = data.usage?.prompt_tokens || 0;
+    const outputTokens = data.usage?.completion_tokens || 0;
+    await logAzureUsage(inputTokens, outputTokens);
+
     return NextResponse.json({ formattedText });
   } catch (error: any) {
     console.error("Formatting error:", error);

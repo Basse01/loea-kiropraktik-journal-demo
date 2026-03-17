@@ -57,26 +57,26 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0f1a0f]">
-      <header className="bg-[#0f1a0f] border-b border-[#00cc44]/15">
+    <main className="min-h-screen bg-white">
+      <header className="bg-white border-b border-gray-200">
         <div className="max-w-[1200px] mx-auto px-6 py-8">
           <div className="text-center">
-            <h1 className="text-3xl font-semibold tracking-wide text-[#00cc44]">LOEA KIROPRAKTIK</h1>
+            <h1 className="text-3xl font-semibold tracking-wide text-[#2d8c4e]">LOEA KIROPRAKTIK</h1>
           </div>
         </div>
       </header>
 
-      <section className="bg-[#0f1a0f] pb-12 text-center">
+      <section className="bg-white pb-12 text-center border-b border-gray-200">
         <div className="max-w-[800px] mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-semibold text-white mb-4">AI-driven Journalföring</h2>
-          <p className="text-white/40 text-base">Effektivisera din dokumentation med röstinspelning</p>
+          <h2 className="text-3xl md:text-4xl font-semibold text-[#1a1a1a] mb-4">AI-driven Journalföring</h2>
+          <p className="text-gray-500 text-base">Effektivisera din dokumentation med röstinspelning</p>
         </div>
       </section>
 
-      <div className="bg-[#141f14] min-h-screen py-12 px-4">
+      <div className="bg-[#f5f5f5] min-h-screen py-12 px-4">
         <div className="max-w-[900px] mx-auto">
           {error && (
-            <div className="bg-red-900/30 border border-red-500/30 text-red-300 px-6 py-4 rounded-lg mb-8">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg mb-8">
               <div className="flex items-center gap-3">
                 <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
                 <span>{error}</span>
@@ -84,45 +84,45 @@ export default function Home() {
             </div>
           )}
 
-          <section className="bg-[#1a2a1a] rounded-2xl p-8 mb-8 shadow-sm border border-[#00cc44]/15">
-            <h2 className="text-2xl font-semibold text-[#00cc44] mb-8 text-center">Röstinspelning</h2>
+          <section className="bg-white rounded-2xl p-8 mb-8 shadow-sm border border-gray-100">
+            <h2 className="text-2xl font-semibold text-[#1a1a1a] mb-8 text-center">Röstinspelning</h2>
             <div className="flex flex-col items-center">
               <button onClick={isRecording ? stopRecording : startRecording}
-                className={`w-[160px] h-[160px] rounded-full flex items-center justify-center transition-all duration-300 border-2 ${isRecording ? "bg-red-900/30 border-red-500 animate-pulse" : "bg-[#00cc44]/10 border-[#00cc44] hover:bg-[#00cc44]/20"}`}>
+                className={`w-[160px] h-[160px] rounded-full flex items-center justify-center transition-all duration-300 border-2 ${isRecording ? "bg-red-50 border-red-500 animate-pulse" : "bg-[#2d8c4e]/10 border-[#2d8c4e] hover:bg-[#2d8c4e]/20"}`}>
                 {isRecording ? (
                   <svg className="w-16 h-16 text-red-500" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
                 ) : (
-                  <svg className="w-16 h-16 text-[#00cc44]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" /><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" /></svg>
+                  <svg className="w-16 h-16 text-[#2d8c4e]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" /><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" /></svg>
                 )}
               </button>
-              <p className="mt-6 text-white/50 font-medium text-lg">{isRecording ? "Inspelning pågår... Klicka för att stoppa" : "Klicka för att börja spela in"}</p>
+              <p className="mt-6 text-gray-500 font-medium text-lg">{isRecording ? "Inspelning pågår... Klicka för att stoppa" : "Klicka för att börja spela in"}</p>
             </div>
           </section>
 
-          <section className="bg-[#1a2a1a] rounded-2xl p-8 mb-8 shadow-sm border border-[#00cc44]/15">
-            <h2 className="text-2xl font-semibold text-[#00cc44] mb-6">Transkribering</h2>
+          <section className="bg-white rounded-2xl p-8 mb-8 shadow-sm border border-gray-100">
+            <h2 className="text-2xl font-semibold text-[#1a1a1a] mb-6">Transkribering</h2>
             <div className="relative">
-              <textarea readOnly value={transcription} placeholder="Transkriberad text visas här..." className="w-full h-[160px] p-5 bg-[#0f1a0f] border border-[#00cc44]/15 rounded-xl resize-none text-white/80 text-base placeholder-white/20 focus:outline-none focus:border-[#00cc44]/40 transition-colors" />
-              {isTranscribing && (<div className="absolute inset-0 bg-[#1a2a1a]/90 flex items-center justify-center rounded-xl"><div className="flex items-center gap-4"><svg className="animate-spin h-6 w-6 text-[#00cc44]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg><span className="text-white/50 text-base font-medium">Transkriberar...</span></div></div>)}
+              <textarea readOnly value={transcription} placeholder="Transkriberad text visas här..." className="w-full h-[160px] p-5 bg-[#f8f8f8] border border-gray-200 rounded-xl resize-none text-[#333] text-base placeholder-gray-400 focus:outline-none focus:border-[#2d8c4e] transition-colors" />
+              {isTranscribing && (<div className="absolute inset-0 bg-white/90 flex items-center justify-center rounded-xl"><div className="flex items-center gap-4"><svg className="animate-spin h-6 w-6 text-[#2d8c4e]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg><span className="text-gray-500 text-base font-medium">Transkriberar...</span></div></div>)}
             </div>
             <button onClick={formatToJournal} disabled={!transcription || isTranscribing || isFormatting}
-              className="mt-6 w-full py-4 px-8 bg-[#00cc44] text-[#0f1a0f] font-semibold text-base tracking-wide rounded-lg transition-all duration-200 hover:bg-[#00e04d] disabled:opacity-40 disabled:cursor-not-allowed">
+              className="mt-6 w-full py-4 px-8 bg-[#2d8c4e] text-white font-semibold text-base tracking-wide rounded-lg transition-all duration-200 hover:bg-[#246e3e] disabled:opacity-40 disabled:cursor-not-allowed">
               FORMATERA TILL JOURNAL
             </button>
           </section>
 
-          <section className="bg-[#1a2a1a] rounded-2xl p-8 shadow-sm border border-[#00cc44]/15">
-            <h2 className="text-2xl font-semibold text-[#00cc44] mb-6">Formaterad Journal</h2>
+          <section className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+            <h2 className="text-2xl font-semibold text-[#1a1a1a] mb-6">Formaterad Journal</h2>
             <div className="relative">
-              <textarea value={formattedJournal} onChange={(e) => setFormattedJournal(e.target.value)} placeholder="Formaterad journaltext visas här..." className="w-full h-[280px] p-5 bg-[#0f1a0f] border border-[#00cc44]/15 rounded-xl resize-none text-white/80 text-base placeholder-white/20 focus:outline-none focus:border-[#00cc44]/40 transition-colors" />
-              {isFormatting && (<div className="absolute inset-0 bg-[#1a2a1a]/90 flex items-center justify-center rounded-xl"><div className="flex items-center gap-4"><svg className="animate-spin h-6 w-6 text-[#00cc44]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg><span className="text-white/50 text-base font-medium">Formaterar...</span></div></div>)}
+              <textarea value={formattedJournal} onChange={(e) => setFormattedJournal(e.target.value)} placeholder="Formaterad journaltext visas här..." className="w-full h-[280px] p-5 bg-[#f8f8f8] border border-gray-200 rounded-xl resize-none text-[#333] text-base placeholder-gray-400 focus:outline-none focus:border-[#2d8c4e] transition-colors" />
+              {isFormatting && (<div className="absolute inset-0 bg-white/90 flex items-center justify-center rounded-xl"><div className="flex items-center gap-4"><svg className="animate-spin h-6 w-6 text-[#2d8c4e]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg><span className="text-gray-500 text-base font-medium">Formaterar...</span></div></div>)}
             </div>
             <div className="mt-6 flex items-center gap-4">
               <button onClick={copyToClipboard} disabled={!formattedJournal}
-                className="flex-1 py-4 px-8 bg-[#00cc44] text-[#0f1a0f] font-semibold text-base tracking-wide rounded-lg transition-all duration-200 hover:bg-[#00e04d] disabled:opacity-40 disabled:cursor-not-allowed">
+                className="flex-1 py-4 px-8 bg-[#2d8c4e] text-white font-semibold text-base tracking-wide rounded-lg transition-all duration-200 hover:bg-[#246e3e] disabled:opacity-40 disabled:cursor-not-allowed">
                 KOPIERA TILL URKLIPP
               </button>
-              {copySuccess && (<span className="text-[#00cc44] font-medium text-base flex items-center gap-2"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>Kopierat!</span>)}
+              {copySuccess && (<span className="text-[#2d8c4e] font-medium text-base flex items-center gap-2"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>Kopierat!</span>)}
             </div>
           </section>
         </div>
